@@ -1,0 +1,26 @@
+{
+  "name": "prismism-skills",
+  "owner": {
+    "name": "Prismism",
+    "email": "bill@ten2.co"
+  },
+  "metadata": {
+    "description": "Shareable links for any file — API-first document delivery with analytics and access control",
+    "version": "1.0.0",
+    "homepage": "https://prismism.dev"
+  },
+  "plugins": [
+    {
+      "name": "prismism",
+      "description": "Publish files and HTML as shareable tracked links via Prismism. Supports PDF, HTML, Markdown, images, and text with optional analytics, password protection, and email gating.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./publish-file",
+        "./publish-html",
+        "./gated-content",
+        "./manage-artifacts"
+      ]
+    }
+  ]
+}
