@@ -134,8 +134,7 @@ paths:
                   type: string
                   description: Replace HTML content (html format artifacts only)
                 password:
-                  type: string
-                  nullable: true
+                  type: ['string', 'null']
                 requireEmail:
                   type: boolean
                 allowedDomains:
@@ -143,9 +142,8 @@ paths:
                   items:
                     type: string
                 expiresAt:
-                  type: string
+                  type: ['string', 'null']
                   format: date-time
-                  nullable: true
       responses:
         '200':
           description: Updated artifact
@@ -237,9 +235,8 @@ components:
         isGated:
           type: boolean
         expiresAt:
-          type: string
+          type: ['string', 'null']
           format: date-time
-          nullable: true
         createdAt:
           type: string
           format: date-time
