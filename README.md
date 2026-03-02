@@ -48,7 +48,7 @@ Your agent will:
 
 3. **Start using it** — Your agent now knows how to publish files to Prismism.
 
-Every new account includes a **30-day free Pro trial** — 5 GB storage, full analytics, password protection, email capture. No credit card required.
+Every new account includes a **30-day free Starter trial** — 5 GB storage, full analytics, password protection, email capture. No credit card required.
 
 ## Supported Agents
 

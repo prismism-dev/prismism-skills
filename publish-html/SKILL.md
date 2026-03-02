@@ -47,7 +47,7 @@ The `url` is immediately shareable.
 |-----------|----------|------|-------------|
 | `html` | **Yes** | string | Raw HTML content. Can be a full document or fragment. |
 | `title` | No | string | Display name shown in the wrapper and link previews. |
-| `password` | No | string | Password-protect the artifact (Pro plan required). |
+| `password` | No | string | Password-protect the artifact (Starter plan required). |
 | `requireEmail` | No | boolean | Require email before viewing. |
 | `allowedDomains` | No | string[] | Allowed email domains (only with requireEmail). |
 | `allowNetwork` | No | boolean | Allow external network requests — fetch, images, scripts (default: false). |

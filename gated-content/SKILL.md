@@ -17,9 +17,9 @@ Prismism supports two gates that can be combined:
 
 | Gate | What It Does | Plan Required |
 |------|-------------|---------------|
-| **Password** | Viewers enter a password before viewing | Pro |
-| **Email capture** | Viewers provide their email before viewing | Pro |
-| **Domain allowlist** | Only emails from specified domains can access | Business |
+| **Password** | Viewers enter a password before viewing | Starter |
+| **Email capture** | Viewers provide their email before viewing | Starter |
+| **Domain allowlist** | Only emails from specified domains can access | Pro |
 
 ## Setting Gates at Upload
 
@@ -142,7 +142,7 @@ curl https://prismism.dev/p/AbCdEf12/download/pdf \
 
 ## Important Notes
 
-- **Password protection requires Pro plan** ($12/mo). Free plan returns 403 with `upgradeUrl`.
+- **Password protection requires Starter plan** ($5/mo). Free plan returns 403 with `upgradeUrl`.
 - **Bearer tokens are scoped** to a specific artifact and contact — they cannot be reused across artifacts.
 - **For combined gates** (password + email), unlock each gate separately. Both must be unlocked before content is accessible.
 - **Browser users** get an httpOnly cookie set automatically — no need to handle Bearer tokens manually.

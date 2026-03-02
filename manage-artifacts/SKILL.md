@@ -111,7 +111,7 @@ curl -X PATCH https://prismism.dev/v1/artifacts/{id} \
   -H "Content-Type: application/json" \
   -d '{"title": "Updated Report", "expiresAt": "2026-06-01T00:00:00Z"}'
 
-# Add password protection (Pro plan required)
+# Add password protection (Starter plan required)
 curl -X PATCH https://prismism.dev/v1/artifacts/{id} \
   -H "x-api-key: $PRISMISM_API_KEY" \
   -H "Content-Type: application/json" \

@@ -64,7 +64,7 @@ All passed as form fields alongside `file`:
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `title` | string | Display name. Defaults to original filename. |
-| `password` | string | Password-protect the artifact (Pro plan required). |
+| `password` | string | Password-protect the artifact (Starter plan required). |
 | `requireEmail` | boolean | Require email before viewing. |
 | `allowedDomains` | string | JSON array of allowed email domains, e.g. `'["acme.com"]'`. Only applies when requireEmail is true. |
 | `allowNetwork` | boolean | Allow HTML/Markdown to make external network requests (default: false). |
@@ -120,7 +120,7 @@ curl -X POST https://prismism.dev/v1/artifacts \
 |------|-------|--------|
 | 400 | `INVALID_REQUEST` | Fix request parameters, don't retry |
 | 401 | `UNAUTHORIZED` | Check API key is correct and in `x-api-key` header |
-| 403 | `FORBIDDEN` | Feature requires a higher plan (e.g. password protection requires Pro) |
+| 403 | `FORBIDDEN` | Feature requires a higher plan (e.g. password protection requires Starter) |
 | 413 | `FILE_TOO_LARGE` | Reduce file size or compress |
 | 415 | `UNSUPPORTED_FORMAT` | Check supported formats table above |
 | 429 | `RATE_LIMIT_EXCEEDED` | Wait for `x-ratelimit-reset`, then retry |

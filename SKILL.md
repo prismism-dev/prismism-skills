@@ -58,7 +58,7 @@ curl -X POST https://prismism.dev/v1/auth/register \
 
 The API key is returned **once** in the registration response. Store it securely.
 
-Every new account includes a **30-day free Pro trial** — 5 GB storage, full analytics, password protection, email capture. No credit card required.
+Every new account includes a **30-day free Starter trial** — 5 GB storage, full analytics, password protection, email capture. No credit card required.
 
 ### Store the Key
 
