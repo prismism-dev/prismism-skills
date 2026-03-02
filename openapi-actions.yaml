@@ -134,7 +134,7 @@ paths:
                   type: string
                   description: Replace HTML content (html format artifacts only)
                 password:
-                  type: ['string', 'null']
+                  type: [string, "null"]
                 requireEmail:
                   type: boolean
                 allowedDomains:
@@ -142,7 +142,7 @@ paths:
                   items:
                     type: string
                 expiresAt:
-                  type: ['string', 'null']
+                  type: [string, "null"]
                   format: date-time
       responses:
         '200':
@@ -235,7 +235,7 @@ components:
         isGated:
           type: boolean
         expiresAt:
-          type: ['string', 'null']
+          type: [string, "null"]
           format: date-time
         createdAt:
           type: string
