@@ -1,0 +1,308 @@
+openapi: 3.0.3
+info:
+  title: Prismism API
+  version: 1.0.0
+  description: |
+    Upload any file. Get a shareable link with built-in analytics and gating.
+    API-first document delivery — built for AI agents.
+
+    Authentication: All /v1/ endpoints require an API key via the x-api-key header.
+
+servers:
+  - url: https://prismism.dev
+    description: Production
+
+paths:
+  /v1/artifacts:
+    post:
+      operationId: createArtifact
+      summary: Create an HTML artifact and get a shareable link
+      description: |
+        Create an artifact by sending HTML content as JSON. Returns a shareable URL.
+        Use this to publish HTML content as a tracked, shareable link.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - html
+              properties:
+                html:
+                  type: string
+                  description: Raw HTML content to publish
+                title:
+                  type: string
+                  description: Display name for the artifact
+                password:
+                  type: string
+                  description: Password to gate access
+                requireEmail:
+                  type: boolean
+                  description: If true, viewers must enter email before seeing content
+                  default: false
+                allowedDomains:
+                  type: array
+                  items:
+                    type: string
+                  description: Allowed email domains when requireEmail is true
+                allowNetwork:
+                  type: boolean
+                  description: Allow HTML content to make external network requests
+                  default: false
+                expiresAt:
+                  type: string
+                  format: date-time
+                  description: Auto-expire date in RFC3339 format
+      responses:
+        '201':
+          description: Artifact created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+        '400':
+          description: Validation error
+    get:
+      operationId: listArtifacts
+      summary: List your artifacts
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [processing, converting, ready, failed]
+      responses:
+        '200':
+          description: Paginated list of artifacts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtifactList'
+
+  /v1/artifacts/{id}:
+    get:
+      operationId: getArtifact
+      summary: Get artifact details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Artifact details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+        '404':
+          description: Artifact not found
+    patch:
+      operationId: updateArtifact
+      summary: Update artifact metadata
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                html:
+                  type: string
+                  description: Replace HTML content (html format artifacts only)
+                password:
+                  type: string
+                  nullable: true
+                requireEmail:
+                  type: boolean
+                allowedDomains:
+                  type: array
+                  items:
+                    type: string
+                expiresAt:
+                  type: string
+                  format: date-time
+                  nullable: true
+      responses:
+        '200':
+          description: Updated artifact
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+        '404':
+          description: Artifact not found
+    delete:
+      operationId: deleteArtifact
+      summary: Delete artifact and files
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Artifact deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: boolean
+                  id:
+                    type: string
+                    format: uuid
+        '404':
+          description: Artifact not found
+
+  /v1/account:
+    get:
+      operationId: getAccount
+      summary: Get usage and limits
+      responses:
+        '200':
+          description: Account usage and plan limits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: API key prefixed with pal_
+
+  schemas:
+    Artifact:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        shortId:
+          type: string
+        url:
+          type: string
+          format: uri
+          description: Full shareable URL
+        title:
+          type: string
+        format:
+          type: string
+          enum: [html, pdf, markdown, image, text, video]
+        status:
+          type: string
+          enum: [processing, converting, ready, failed]
+        fileSize:
+          type: integer
+        originalFilename:
+          type: string
+        mimeType:
+          type: string
+        viewCount:
+          type: integer
+        hasPassword:
+          type: boolean
+        requireEmail:
+          type: boolean
+        isGated:
+          type: boolean
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ArtifactList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Artifact'
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            hasMore:
+              type: boolean
+
+    AccountResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            email:
+              type: string
+            name:
+              type: string
+            plan:
+              type: string
+        usage:
+          type: object
+          properties:
+            artifacts:
+              type: integer
+            storageBytes:
+              type: integer
+        limits:
+          type: object
+          properties:
+            maxStorageBytes:
+              type: integer
+            maxApiKeys:
+              type: integer
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+security:
+  - ApiKeyAuth: []
