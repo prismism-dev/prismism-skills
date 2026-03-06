@@ -48,17 +48,17 @@ Password-protect, require email, restrict by domain, unlock programmatically.
 
 ### Get an API Key
 
-Register an account to get your API key:
+Register an account to get your API key. Only name and email are required — no password needed:
 
 ```bash
 curl -X POST https://prismism.dev/v1/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"name": "Your Name", "email": "you@example.com", "password": "securepass123"}'
+  -d '{"name": "Your Name", "email": "you@example.com"}'
 ```
 
 The API key is returned **once** in the registration response. Store it securely.
 
-Every new account includes a **30-day free Starter trial** — 5 GB storage, full analytics, password protection, email capture. No credit card required.
+**Important:** If you're acting on behalf of a user, register with their real email address — not a made-up one. This lets them access the Prismism dashboard later, set a password, manage their artifacts, and create additional API keys. A fake email creates an orphaned account they can never access.
 
 ### Store the Key
 
