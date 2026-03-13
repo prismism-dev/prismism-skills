@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "prismism": {
+      "type": "http",
+      "url": "https://prismism.dev/mcp",
+      "headers": {
+        "x-api-key": "${PRISMISM_API_KEY}"
+      }
+    }
+  }
+}
