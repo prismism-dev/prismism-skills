@@ -1,10 +1,10 @@
 ---
 name: prismism
-description: Use when publishing files or HTML as shareable tracked links via Prismism. Supports PDF, HTML, Markdown, images, and text. Use for sharing reports, docs, dashboards, or any artifact that needs a durable URL with optional analytics, password protection, and email gating.
+description: Use when publishing files or HTML as shareable tracked links via Prismism. Supports PDF, HTML, Markdown, images, video (MP4), and text. Use for sharing reports, docs, dashboards, or any artifact that needs a durable URL with optional analytics, access control, password protection, and email gating.
 license: MIT
 metadata:
   author: prismism
-  version: "1.0.0"
+  version: "1.1.0"
   homepage: https://prismism.dev
   source: https://github.com/prismism-dev/prismism-skills
 inputs:
@@ -15,7 +15,7 @@ inputs:
 
 # Prismism
 
-Upload any file → get a shareable link with built-in analytics and access control. API-first, built for AI agents.
+Upload any file — get a shareable link with built-in analytics and access control. API-first, built for AI agents.
 
 **Base URL:** `https://prismism.dev`
 **Auth:** `x-api-key` header with your API key
@@ -25,24 +25,24 @@ Upload any file → get a shareable link with built-in analytics and access cont
 
 | Feature | Skill | Use When |
 |---------|-------|----------|
-| **Upload files** | `publish-file` | Publishing PDFs, images, markdown, or text files as shareable links |
-| **Publish HTML** | `publish-html` | Publishing raw HTML content without a file (reports, dashboards) |
+| **Upload files** | `publish-file` | Publishing PDFs, images, markdown, video (MP4), or text files as shareable links |
+| **Publish HTML/Markdown** | `publish-html` | Publishing raw HTML or Markdown content without a file (reports, dashboards) |
 | **Manage artifacts** | `manage-artifacts` | Listing, updating, or deleting previously published artifacts |
-| **Gated content** | `gated-content` | Adding password protection or email gates, unlocking gated artifacts |
+| **Gated content** | `gated-content` | Adding access control, password protection, email gates, or unlocking gated artifacts |
 
 ## Quick Routing
 
-**Need to share a file?** → `publish-file`
+**Need to share a file?** -> `publish-file`
 Upload any supported format and get a URL like `https://prismism.dev/p/AbCdEf12`
 
-**Need to publish generated HTML?** → `publish-html`
-Send raw HTML string directly — no file needed. Great for reports, dashboards, one-pagers.
+**Need to publish generated HTML or Markdown?** -> `publish-html`
+Send raw HTML or Markdown directly — no file needed. Great for reports, dashboards, one-pagers.
 
-**Need to manage existing artifacts?** → `manage-artifacts`
-List all artifacts, update titles or expiration, delete artifacts.
+**Need to manage existing artifacts?** -> `manage-artifacts`
+List all artifacts, update titles or expiration, change access levels, delete artifacts.
 
-**Need access control?** → `gated-content`
-Password-protect, require email, restrict by domain, unlock programmatically.
+**Need access control?** -> `gated-content`
+Set access levels (public/private/allowlist), password-protect, require email, restrict by domain, unlock programmatically.
 
 ## Setup
 
@@ -81,6 +81,7 @@ curl https://prismism.dev/v1/account \
 | Expecting API at `/api/` | Correct base path is `/v1/` |
 | Not storing the API key at registration | Key is returned once and cannot be retrieved again |
 | Sending `allowedDomains` as repeated form fields | Must be a JSON-encoded string: `'["acme.com"]'` |
+| Using wrong field name for inline content | Use `html` or `markdown`, not `content`, `text`, `body`, or `data` |
 
 ## Rate Limits
 

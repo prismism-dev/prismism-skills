@@ -1,6 +1,6 @@
 ---
 name: publish-file
-description: Use when uploading files (PDF, HTML, Markdown, images, text) to Prismism to create shareable tracked links. Handles multipart upload, format detection, and returns the public URL.
+description: Use when uploading files (PDF, HTML, Markdown, images, video, text) to Prismism to create shareable tracked links. Handles multipart upload, format detection, and returns the public URL.
 inputs:
   - name: PRISMISM_API_KEY
     description: Prismism API key (prefixed with pal_).
@@ -27,6 +27,7 @@ Upload any supported file to get a shareable, tracked link.
 | `image/gif` | .gif | 20 MB |
 | `image/svg+xml` | .svg | 5 MB |
 | `image/webp` | .webp | 20 MB |
+| `video/mp4` | .mp4 | 100 MB (Free/Plus), 500 MB (Pro), 1 GB (Business) |
 | `text/plain` | .txt, .csv | 5 MB |
 | `application/json` | .json | 5 MB |
 
@@ -48,6 +49,7 @@ curl -X POST https://prismism.dev/v1/artifacts \
   "title": "Q4 Report",
   "format": "pdf",
   "status": "ready",
+  "access": "public",
   "viewCount": 0,
   "hasPassword": false,
   "requireEmail": false,
@@ -64,15 +66,26 @@ All passed as form fields alongside `file`:
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `title` | string | Display name. Defaults to original filename. |
-| `password` | string | Password-protect the artifact (Starter plan required). |
-| `requireEmail` | boolean | Require email before viewing. |
-| `allowedDomains` | string | JSON array of allowed email domains, e.g. `'["acme.com"]'`. Only applies when requireEmail is true. |
+| `access` | string | Access level: `public` (default), `private` (owner only), `allowlist` (verified emails, Plus+). |
+| `password` | string | Password-protect the artifact. All plans. |
+| `requireEmail` | boolean | Require email before viewing (Pro+). |
+| `allowedDomains` | string | JSON array of allowed email domains, e.g. `'["acme.com"]'`. Only applies when requireEmail is true (Pro+). |
+| `allowedEmails` | string | JSON array of allowed emails for allowlist access, e.g. `'["alice@acme.com"]'`. Required when access is `allowlist`. |
 | `allowNetwork` | boolean | Allow HTML/Markdown to make external network requests (default: false). |
 | `expiresAt` | string | Auto-expire date (RFC 3339), e.g. `2026-04-01T00:00:00Z`. |
 
-**IMPORTANT:** `allowedDomains` must be a JSON-encoded string in multipart form data, not repeated fields.
+**IMPORTANT:** `allowedDomains` and `allowedEmails` must be JSON-encoded strings in multipart form data, not repeated fields.
 
 ## Examples
+
+### Upload a video
+
+```bash
+curl -X POST https://prismism.dev/v1/artifacts \
+  -H "x-api-key: $PRISMISM_API_KEY" \
+  -F "file=@demo.mp4" \
+  -F "title=Product Demo"
+```
 
 ### Upload an image
 
@@ -91,6 +104,27 @@ curl -X POST https://prismism.dev/v1/artifacts \
   -F "file=@confidential.pdf" \
   -F "title=Board Deck" \
   -F "password=secret123"
+```
+
+### Upload as private (owner only)
+
+```bash
+curl -X POST https://prismism.dev/v1/artifacts \
+  -H "x-api-key: $PRISMISM_API_KEY" \
+  -F "file=@internal.pdf" \
+  -F "title=Internal Notes" \
+  -F "access=private"
+```
+
+### Upload with allowlist access
+
+```bash
+curl -X POST https://prismism.dev/v1/artifacts \
+  -H "x-api-key: $PRISMISM_API_KEY" \
+  -F "file=@proposal.pdf" \
+  -F "title=Proposal for Acme" \
+  -F "access=allowlist" \
+  -F 'allowedEmails=["alice@acme.com","bob@acme.com"]'
 ```
 
 ### Upload with email gate and domain restriction
@@ -120,7 +154,7 @@ curl -X POST https://prismism.dev/v1/artifacts \
 |------|-------|--------|
 | 400 | `INVALID_REQUEST` | Fix request parameters, don't retry |
 | 401 | `UNAUTHORIZED` | Check API key is correct and in `x-api-key` header |
-| 403 | `FORBIDDEN` | Feature requires a higher plan (e.g. password protection requires Starter) |
+| 403 | `FORBIDDEN` | Feature requires a higher plan |
 | 413 | `FILE_TOO_LARGE` | Reduce file size or compress |
 | 415 | `UNSUPPORTED_FORMAT` | Check supported formats table above |
 | 429 | `RATE_LIMIT_EXCEEDED` | Wait for `x-ratelimit-reset`, then retry |

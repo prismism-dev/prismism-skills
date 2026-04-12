@@ -1,6 +1,6 @@
 ---
 name: manage-artifacts
-description: Use when listing, viewing details, updating metadata, or deleting existing Prismism artifacts. Covers pagination, filtering, and metadata updates.
+description: Use when listing, viewing details, updating metadata, changing access levels, or deleting existing Prismism artifacts. Covers pagination, filtering, access control, and metadata updates.
 inputs:
   - name: PRISMISM_API_KEY
     description: Prismism API key (prefixed with pal_).
@@ -41,6 +41,7 @@ curl https://prismism.dev/v1/artifacts \
       "title": "Q4 Report",
       "format": "pdf",
       "status": "ready",
+      "access": "public",
       "fileSize": 54321,
       "viewCount": 42,
       "hasPassword": false,
@@ -94,13 +95,24 @@ curl -X PATCH https://prismism.dev/v1/artifacts/{id} \
 |-------|------|-------|
 | `title` | string | Display name |
 | `html` | string | Replace content (**HTML format only**) |
+| `markdown` | string | Replace content (**Markdown format only**) |
+| `access` | string | `public`, `private`, or `allowlist` (Plus+) |
+| `allowedEmails` | string[] | Emails for allowlist access. Used when `access` is `allowlist`. |
 | `password` | string \| null | Set password, or `null` to remove it |
-| `requireEmail` | boolean | Toggle email gate |
-| `allowedDomains` | string[] | Set allowed email domains |
+| `requireEmail` | boolean | Toggle email gate (Pro+) |
+| `allowedDomains` | string[] | Set allowed email domains (Pro+) |
 | `expiresAt` | string \| null | Set expiration (RFC 3339), or `null` to remove |
 | `allowNetwork` | boolean | Toggle network access for HTML/Markdown |
 
-**Note:** File content (non-HTML) cannot be updated after upload. Create a new artifact instead.
+**Note:** File content (non-HTML/Markdown) cannot be updated after upload. Create a new artifact instead.
+
+### Access Level Transitions
+
+When changing access levels, be aware of side effects:
+
+- **Setting access to `private` or `allowlist`**: Password and email gates are silently cleared. Response includes `_warnings` explaining what was cleared.
+- **Changing away from `allowlist`**: Allowed emails are cleared and all viewer sessions are revoked. Response includes `_warnings`.
+- **Setting `allowlist` with empty emails**: Succeeds with a `_warnings` note that nobody will be able to request access.
 
 ### Update Examples
 
@@ -111,7 +123,19 @@ curl -X PATCH https://prismism.dev/v1/artifacts/{id} \
   -H "Content-Type: application/json" \
   -d '{"title": "Updated Report", "expiresAt": "2026-06-01T00:00:00Z"}'
 
-# Add password protection (Starter plan required)
+# Make private (owner only)
+curl -X PATCH https://prismism.dev/v1/artifacts/{id} \
+  -H "x-api-key: $PRISMISM_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"access": "private"}'
+
+# Set allowlist access with specific emails
+curl -X PATCH https://prismism.dev/v1/artifacts/{id} \
+  -H "x-api-key: $PRISMISM_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"access": "allowlist", "allowedEmails": ["alice@acme.com", "bob@partner.co"]}'
+
+# Add password protection
 curl -X PATCH https://prismism.dev/v1/artifacts/{id} \
   -H "x-api-key: $PRISMISM_API_KEY" \
   -H "Content-Type: application/json" \
@@ -122,6 +146,12 @@ curl -X PATCH https://prismism.dev/v1/artifacts/{id} \
   -H "x-api-key: $PRISMISM_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"password": null}'
+
+# Make public again
+curl -X PATCH https://prismism.dev/v1/artifacts/{id} \
+  -H "x-api-key: $PRISMISM_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"access": "public"}'
 
 # Remove expiration (make permanent)
 curl -X PATCH https://prismism.dev/v1/artifacts/{id} \

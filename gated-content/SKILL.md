@@ -1,6 +1,6 @@
 ---
 name: gated-content
-description: Use when adding access control to Prismism artifacts (passwords, email capture, domain restrictions) or when programmatically unlocking gated content to retrieve file bytes.
+description: Use when adding access control to Prismism artifacts (access levels, passwords, email capture, domain restrictions) or when programmatically unlocking gated content to retrieve file bytes.
 inputs:
   - name: PRISMISM_API_KEY
     description: Prismism API key (prefixed with pal_).
@@ -9,17 +9,76 @@ inputs:
 
 # Gated Content on Prismism
 
-Add access control to artifacts and unlock gated content programmatically.
+Control who can view your artifacts and unlock gated content programmatically.
 
-## Access Gates
+## Access Levels
 
-Prismism supports two gates that can be combined:
+Every artifact has an `access` level that controls who can view it:
+
+| Level | Who Can View | Plan Required |
+|-------|-------------|---------------|
+| **`public`** | Anyone with the link (default) | Free |
+| **`private`** | Only the owner (via API key or dashboard) | Free |
+| **`allowlist`** | Only verified emails via magic link | Plus+ |
+
+### Setting access at upload
+
+```bash
+# Private artifact (owner only)
+curl -X POST https://prismism.dev/v1/artifacts \
+  -H "x-api-key: $PRISMISM_API_KEY" \
+  -F "file=@internal.pdf" \
+  -F "title=Internal Notes" \
+  -F "access=private"
+
+# Allowlist artifact (verified emails only)
+curl -X POST https://prismism.dev/v1/artifacts \
+  -H "x-api-key: $PRISMISM_API_KEY" \
+  -F "file=@proposal.pdf" \
+  -F "title=Proposal" \
+  -F "access=allowlist" \
+  -F 'allowedEmails=["alice@acme.com","bob@acme.com"]'
+```
+
+### Changing access after upload
+
+```bash
+# Make private
+curl -X PATCH https://prismism.dev/v1/artifacts/{id} \
+  -H "x-api-key: $PRISMISM_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"access": "private"}'
+
+# Set allowlist with specific emails
+curl -X PATCH https://prismism.dev/v1/artifacts/{id} \
+  -H "x-api-key: $PRISMISM_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"access": "allowlist", "allowedEmails": ["alice@acme.com"]}'
+
+# Make public again
+curl -X PATCH https://prismism.dev/v1/artifacts/{id} \
+  -H "x-api-key: $PRISMISM_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"access": "public"}'
+```
+
+### Magic links for allowlist access
+
+When an artifact has `access: "allowlist"`, visitors see a branded gate page. They enter their email, and if it's on the allowlist, they receive a magic link via email. Clicking the link sets a viewer session cookie (30-day expiry, scoped to that specific artifact).
+
+Magic link tokens expire after 15 minutes. Rate limited to 3 magic links per email per artifact per hour.
+
+## Content Gates
+
+On top of access levels, public artifacts can have additional gates:
 
 | Gate | What It Does | Plan Required |
 |------|-------------|---------------|
-| **Password** | Viewers enter a password before viewing | Starter |
-| **Email capture** | Viewers provide their email before viewing | Starter |
-| **Domain allowlist** | Only emails from specified domains can access | Pro |
+| **Password** | Viewers enter a password before viewing | Free (all plans) |
+| **Email capture** | Viewers provide their email before viewing | Pro+ |
+| **Domain allowlist** | Only emails from specified domains can access | Pro+ |
+
+**Important:** Password and email gates only apply to `public` artifacts. Setting access to `private` or `allowlist` silently clears any existing password and email gates.
 
 ## Setting Gates at Upload
 
@@ -95,20 +154,68 @@ curl -X PATCH https://prismism.dev/v1/artifacts/{id} \
 
 ## Unlocking Gated Content Programmatically
 
-When content is gated, you need to unlock it before accessing the file bytes. This is the flow for AI agents and API callers.
+There are two ways for agents to access gated content:
 
-### Step 1: Unlock
+### Method 1: Owner API key bypass (recommended for artifact owners)
 
-**Endpoint:** `POST https://prismism.dev/p/{shortId}/unlock`
+If you are the artifact owner, simply use your API key with the raw content endpoint. Owner API key access **bypasses all gates unconditionally** — no password or email needed.
+
+```bash
+curl https://prismism.dev/v1/artifacts/{id}/content \
+  -H "x-api-key: $PRISMISM_API_KEY" \
+  --output file.pdf
+```
+
+This is the simplest approach when the agent has the owner's API key.
+
+### Method 2: Gate negotiation via content endpoint (for non-owners)
+
+When accessing gated content without owner credentials, the content endpoint returns 402 with `_hints` explaining what's needed:
+
+**Password-protected content:**
+```bash
+# First attempt — returns 402 with hints
+curl https://prismism.dev/v1/artifacts/{id}/content
+
+# Response: {"error": "PASSWORD_REQUIRED", "_hints": {"unlock": "...retry with X-Prismism-Password header..."}}
+
+# Retry with password
+curl https://prismism.dev/v1/artifacts/{id}/content \
+  -H "X-Prismism-Password: secret123" \
+  --output file.pdf
+```
+
+**Email-gated content:**
+```bash
+# First attempt — returns 402 with hints
+curl https://prismism.dev/v1/artifacts/{id}/content
+
+# Response: {"error": "EMAIL_REQUIRED", "_hints": {"unlock": "...retry with X-Prismism-Email header..."}}
+
+# Retry with email
+curl https://prismism.dev/v1/artifacts/{id}/content \
+  -H "X-Prismism-Email: viewer@acme.com" \
+  --output file.pdf
+```
+
+**Alternative: query parameters**
+```bash
+curl "https://prismism.dev/v1/artifacts/{id}/content?password=secret123"
+curl "https://prismism.dev/v1/artifacts/{id}/content?email=viewer@acme.com"
+```
+
+### Method 3: Unlock endpoint (for browser-based flows)
+
+The unlock endpoint is used by browser viewers and sets a session cookie:
 
 ```bash
 # Unlock with password
-curl -X POST https://prismism.dev/p/AbCdEf12/unlock \
+curl -X POST https://prismism.dev/p/{shortId}/unlock \
   -H "Content-Type: application/json" \
   -d '{"gate": "password", "value": "secret123"}'
 
 # Unlock with email
-curl -X POST https://prismism.dev/p/AbCdEf12/unlock \
+curl -X POST https://prismism.dev/p/{shortId}/unlock \
   -H "Content-Type: application/json" \
   -d '{"gate": "email", "value": "viewer@acme.com"}'
 ```
@@ -121,37 +228,33 @@ curl -X POST https://prismism.dev/p/AbCdEf12/unlock \
 }
 ```
 
-### Step 2: Fetch content with the Bearer token
+The token can be used as a Bearer token for subsequent content/download requests:
 
 ```bash
-# Stream content (for rendering)
-curl https://prismism.dev/p/AbCdEf12/content \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
-  --output file.pdf
-
-# Download original file
-curl https://prismism.dev/p/AbCdEf12/download/original \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
-  --output file.pdf
-
-# Download PDF version (when available)
-curl https://prismism.dev/p/AbCdEf12/download/pdf \
+curl https://prismism.dev/p/{shortId}/content \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
   --output file.pdf
 ```
 
+**For combined gates** (password + email), unlock each gate separately. Both must be unlocked before content is accessible.
+
 ## Important Notes
 
-- **Password protection requires Starter plan** ($5/mo). Free plan returns 403 with `upgradeUrl`.
+- **Owner API key always bypasses all gates** — this is the simplest path for agents acting on behalf of the artifact owner.
+- **Private artifacts** return a branded "This link is private" page to non-owners. Only the owner (via API key or dashboard session) can view.
+- **Allowlist artifacts** show a gate where visitors enter their email to receive a magic link. Only emails on the allowlist receive the link.
 - **Bearer tokens are scoped** to a specific artifact and contact — they cannot be reused across artifacts.
 - **For combined gates** (password + email), unlock each gate separately. Both must be unlocked before content is accessible.
-- **Browser users** get an httpOnly cookie set automatically — no need to handle Bearer tokens manually.
-- **No auth header needed** for the unlock endpoint itself — it's a public endpoint. The `x-api-key` is only for managing artifacts (create, update, delete), not for viewing them.
 
 ## Error Handling
 
 | Code | Error | Meaning |
 |------|-------|---------|
-| 403 | `FORBIDDEN` | Wrong password, email domain not allowed, or feature requires upgrade |
+| 402 | `PASSWORD_REQUIRED` | Artifact is password protected. Provide password via `X-Prismism-Password` header or `?password=` param. |
+| 402 | `EMAIL_REQUIRED` | Artifact requires email. Provide via `X-Prismism-Email` header or `?email=` param. |
+| 402 | `INVALID_PASSWORD` | Wrong password. Retry with correct password. |
+| 403 | `PRIVATE_ARTIFACT` | Artifact is private — owner only. Use owner API key to bypass. |
+| 403 | `ALLOWLIST_ONLY` | Artifact is restricted to approved emails. Visit the viewer page to request access via magic link. |
+| 403 | `FORBIDDEN` | Email domain not allowed, or feature requires upgrade |
 | 404 | `NOT_FOUND` | Artifact doesn't exist |
 | 410 | `EXPIRED` | Artifact has passed its expiration date |

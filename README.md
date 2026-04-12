@@ -2,7 +2,7 @@
 
 Teach your AI coding agent to publish files as shareable, tracked links via [Prismism](https://prismism.dev).
 
-Upload any file → get a durable URL with built-in analytics, password protection, and email gating. API-first, built for AI agents.
+Upload any file — get a durable URL with built-in analytics, access control, and email gating. API-first, built for AI agents.
 
 ## Install
 
@@ -16,10 +16,10 @@ Or manually copy the `SKILL.md` files into your project's `.skills/` directory.
 
 | Skill | Description |
 |-------|-------------|
-| **publish-file** | Upload PDFs, images, markdown, or text → get a shareable link |
-| **publish-html** | Publish raw HTML directly (reports, dashboards) → get a shareable link |
+| **publish-file** | Upload PDFs, images, markdown, video, or text — get a shareable link |
+| **publish-html** | Publish raw HTML or Markdown directly (reports, dashboards) — get a shareable link |
 | **manage-artifacts** | List, update, or delete published artifacts |
-| **gated-content** | Password-protect, require email, unlock gated content programmatically |
+| **gated-content** | Password-protect, require email, restrict access levels, unlock gated content programmatically |
 
 ## Quick Example
 
@@ -38,7 +38,7 @@ Your agent will:
    ```bash
    curl -X POST https://prismism.dev/v1/auth/register \
      -H "Content-Type: application/json" \
-     -d '{"name": "Your Name", "email": "you@example.com", "password": "securepass123"}'
+     -d '{"name": "Your Name", "email": "you@example.com"}'
    ```
 
 2. **Store the key** — The API key (prefixed `pal_`) is returned once. Set it as an environment variable:
@@ -48,7 +48,14 @@ Your agent will:
 
 3. **Start using it** — Your agent now knows how to publish files to Prismism.
 
-Every new account includes a **30-day free Starter trial** — 5 GB storage, full analytics, password protection, email capture. No credit card required.
+## Plans
+
+| Plan | Price | Storage | Key Features |
+|------|-------|---------|--------------|
+| **Free** | $0 | 500 MB | Passwords, video, aggregate analytics |
+| **Plus** | $2/mo | 5 GB | Full analytics, webhooks, allowlist access control |
+| **Pro** | $12/mo | 50 GB | Email capture, domain allowlists, metadata queries |
+| **Business** | Custom | 100 GB+ | Custom branding, remove badge, extended retention |
 
 ## Supported Agents
 
@@ -64,6 +71,7 @@ Claude Code, Cursor, VS Code Copilot, OpenAI Codex, Gemini CLI, Roo Code, Goose,
 | HTML | .html, .htm | 10 MB |
 | Markdown | .md | 5 MB |
 | Images | .png, .jpg, .gif, .svg, .webp | 20 MB |
+| Video | .mp4 | 100 MB (Free/Plus), 500 MB (Pro), 1 GB (Business) |
 | Text | .txt, .csv, .json | 5 MB |
 
 ## Links
@@ -71,6 +79,7 @@ Claude Code, Cursor, VS Code Copilot, OpenAI Codex, Gemini CLI, Roo Code, Goose,
 - **Website:** [prismism.dev](https://prismism.dev)
 - **API Docs:** [prismism.dev/docs](https://prismism.dev/docs)
 - **OpenAPI Spec:** [prismism.dev/openapi.yaml](https://prismism.dev/openapi.yaml)
+- **MCP Server:** [@prismism/mcp-server](https://www.npmjs.com/package/@prismism/mcp-server)
 
 ## License
 
